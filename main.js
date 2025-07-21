@@ -104,6 +104,7 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("chat-screen").style.display = "flex";
     document.querySelector(".app-wrapper").style.display = "flex";
     localStorage.setItem("formCompleted", "true");
+    sessionID = crypto.randomUUID();
   })
 
   // Listen for Enter key in chat input
@@ -120,8 +121,13 @@ window.addEventListener("DOMContentLoaded", () => {
   // Sidebar navigation: Home link
   document.getElementById('home-link').addEventListener('click', (e) => {
     e.preventDefault();
+
+    // reset chat
     document.getElementById("chat-container").innerHTML = "";
+    history.length = 0;
+    userMsgs.length = 0;
     sessionID = crypto.randomUUID();
+    
     document.getElementById("consultations-screen").style.display = "none";
     document.getElementById("chat-screen").style.display = "flex";
 
@@ -138,6 +144,8 @@ window.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     document.getElementById("chat-screen").style.display = "none";
     document.getElementById("consultations-screen").style.display = "flex";
+
+    document.getElementById("home-link").textContent = "🧑‍⚕️ Assistant";
 
     // set active link
     document.getElementById('chats-link').classList.add('active');
