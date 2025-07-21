@@ -25,7 +25,6 @@ const provider = new GoogleAuthProvider();
 
 // variables
 const history = [];
-const userMsgs = [];
 let userId = null;
 let sessionID = crypto.randomUUID();
 
@@ -125,7 +124,6 @@ window.addEventListener("DOMContentLoaded", () => {
     // reset chat
     document.getElementById("chat-container").innerHTML = "";
     history.length = 0;
-    userMsgs.length = 0;
     sessionID = crypto.randomUUID();
     
     document.getElementById("consultations-screen").style.display = "none";
@@ -215,7 +213,7 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // Send user message and get response from Gemini API
-function getMessage(message) {
+export function getMessage(message) {
   if (!message) {
     const input = document.getElementById('chat-input');
     message = input.value.trim();
@@ -224,15 +222,12 @@ function getMessage(message) {
   }
 
   addMessage(message, 'user');
-  userMsgs.push(message);
+  history.push({ role: "user", content: message });
 
-  // Join messages with newlines for better prompt formatting
-  const prompt = userMsgs.join("\n");
-
-  askGemini(prompt)
+  askGemini(history)
     .then(response => {
       addMessage(response.text, 'bot');
-      updateFirebase(sessionID, message, response.text, response.name);
+      updateFirebase(sessionID, response.text, response.name);
     })
     .catch(error => {
       addMessage("Error: " + error.message, 'bot');
@@ -250,11 +245,8 @@ function addMessage(text, sender) {
 }
 
 // Save session history to Firebase
-function updateFirebase(sessionID, message, response, name) {
-  history.push(
-    { role: "user", content: message },
-    { role: "assistant", content: response }
-  );
+function updateFirebase(sessionID, response, name) {
+  history.push({ role: "assistant", content: response });
 
   if (!name) {
     const now = new Date();
@@ -279,7 +271,11 @@ function previousSessions(userId) {
     dashboard.innerHTML = ''; // Clear old sessions to avoid duplicates
 
     if (data) {
-      for (const sessionID in data) {
+      // reverse session order
+      const sessionIDs = Object.keys(data).reverse();
+
+      // loop through sessions
+      for (const sessionID of sessionIDs) {
         const session = data[sessionID];
 
         const button = document.createElement('div');
@@ -311,7 +307,6 @@ function loadSession(userId, sessionID) {
 
   // reset values
   history.length = 0;
-  userMsgs.length = 0;
   document.getElementById("chat-container").innerHTML = "";
 
   get(sessionRef)
@@ -321,9 +316,6 @@ function loadSession(userId, sessionID) {
         for (const msgKey in session) {
           const message = session[msgKey];
           history.push(message);
-          if (message.role === 'user') {
-            userMsgs.push(message.content);
-          }
           addMessage(message.content, message.role);
         }
       }
@@ -382,6 +374,3 @@ function iconSelector(type){
     var splitType = (type.split('/')[0] == 'application') ? type.split('/')[1] : type.split('/')[0];
     return splitType + '.png'
 }
-
-// Make getMessage available globally
-window.getMessage = getMessage;

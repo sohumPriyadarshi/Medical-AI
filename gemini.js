@@ -5,7 +5,7 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const instructions = {
-  prompt: `You are a board-certified U.S. general practitioner with over 10 years of experience. You are answering user-submitted medical questions through a virtual consultation platform.
+  prompt: `You are an unamed board-certified U.S. general practitioner with over 10 years of experience. You are answering user-submitted medical questions through a virtual consultation platform.
 
 Your goals:
 - Gather the right info by asking smart follow-up questions
@@ -37,16 +37,19 @@ Never downplay serious symptoms. If life-threatening possibilities exist, advise
 If the user is vague, ask up to 3 clarifying questions before proceeding.`
 };
 
-function buildPrompt(message) {
-  return `${instructions.prompt}\nUser: ${message}`;
-}
+export async function askGemini(conversation) {
+  const systemInstruction = { role: "user", parts: [{ text: instructions.prompt }] };
 
-export async function askGemini(message) {
-  const prompt = buildPrompt(message);
-  
-  // Call Gemini model to generate content
+  const contents = [
+    systemInstruction,
+    ...conversation.map(msg => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }]
+    }))
+  ];
+
   const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    contents,
     generationConfig: {
       temperature: 0.1,
       responseMimeType: "application/json"
@@ -54,13 +57,10 @@ export async function askGemini(message) {
   });
 
   const rawText = await result.response.text();
+  const data = JSON.parse(rawText);
 
-  // Parse JSON from the text response
-  const  data = JSON.parse(rawText);
-
-  // Extract fields safely
   const text = data.response;
-  const name = data.name;
+  const name = data.name ?? null;
 
   return { text, name };
 }
