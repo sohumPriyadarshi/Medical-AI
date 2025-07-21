@@ -257,6 +257,16 @@ function updateFirebase(sessionID, response, name) {
   }
 
   const sessionRef = ref(db, `users/${userId}/sessions/${sessionID}`);
+
+  // Check if session already has a name, and use it if present
+  get(sessionRef).then(snapshot => {
+    const sessionData = snapshot.val();
+    if (sessionData && sessionData.name) {
+      name = sessionData.name;
+    }
+    set(sessionRef, { name, history });
+    return;
+  });
   set(sessionRef, { name, history });
 }
 
@@ -271,11 +281,8 @@ function previousSessions(userId) {
     dashboard.innerHTML = ''; // Clear old sessions to avoid duplicates
 
     if (data) {
-      // reverse session order
-      const sessionIDs = Object.keys(data).reverse();
-
       // loop through sessions
-      for (const sessionID of sessionIDs) {
+      for (const sessionID in data) {
         const session = data[sessionID];
 
         const button = document.createElement('div');
