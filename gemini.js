@@ -53,17 +53,14 @@ export async function askGemini(message) {
     }
   });
 
-  // The API returns a response object with a text() method
-  const response = result.response;
-  const rawText = await response.text();
+  const rawText = await result.response.text();
 
   // Parse JSON from the text response
   const  data = JSON.parse(rawText);
 
   // Extract fields safely
   const text = data.response;
-  const type = data.type;
   const name = data.name;
 
-  return { text, name, type };
+  return { text, name };
 }
