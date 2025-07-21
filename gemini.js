@@ -61,8 +61,9 @@ export async function askGemini(message) {
   const  data = JSON.parse(rawText);
 
   // Extract fields safely
-  const text = data.response
-  const name = data.name
+  const text = data.response;
+  const type = data.type;
+  const name = data.name;
 
-  return { text, name };
+  return { text, name, type };
 }
