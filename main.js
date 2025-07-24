@@ -108,6 +108,12 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
   });
 
+  document.getElementById('chat-input').addEventListener('input', (e) => {
+    e.preventDefault();
+    // update points
+  });
+
+
   // Sidebar navigation: Home link
   document.getElementById('home-link').addEventListener('click', (e) => {
     e.preventDefault();
