@@ -113,6 +113,9 @@ window.addEventListener("DOMContentLoaded", () => {
     // update points
   });
 
+  // handle dashboard with previous chats
+  handleSessionCards();
+
 
   // Sidebar navigation: Home link
   document.getElementById('home-link').addEventListener('click', (e) => {
@@ -138,38 +141,11 @@ window.addEventListener("DOMContentLoaded", () => {
     setActiveScreen("records-screen", "records-link");
   });
 
-  // handle dashboard with previous chats
-  document.getElementById('consultation-list').addEventListener('click', (e) => {
-  const deleteBtn = e.target.closest('.delete-button');
-  const card = e.target.closest('.dashboard-card');
-
-  // Handle delete
-  if (deleteBtn && card) {
-    const sessionID = card.getAttribute('session');
-    const sessionRef = ref(db, `users/${userId}/sessions/${sessionID}`);
-    remove(sessionRef)
-      .then(() => {
-        card.remove();
-      })
-    return;
-  }
-
-  // Handle opening session
-  if (card && !deleteBtn) {
-    // switch to chat screen
-    document.getElementById("consultations-screen").style.display = "none";
-    document.getElementById("chat-screen").style.display = "flex";
-
-    // update sidebar
-    document.getElementById('home-link').classList.add('active');
-    document.getElementById('chats-link').classList.remove('active');
-    document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
-
-    // load session
-    sessionID = card.getAttribute('session');
-    loadSession(userId, sessionID);
-  }
-});
+  // Sidebar navigation: Appointments link
+  document.getElementById('appointments-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    setActiveScreen("appointments-screen", "appointments-link");
+  });
 });
 
 
@@ -312,6 +288,42 @@ function loadSession(userId, sessionID) {
     })
 }
 
+// handle dashboard with previous chats
+function handleSessionCards() {
+  document.getElementById('consultation-list').addEventListener('click', (e) => {
+  const deleteBtn = e.target.closest('.delete-button');
+  const card = e.target.closest('.dashboard-card');
+
+  // Handle delete
+  if (deleteBtn && card) {
+    const sessionID = card.getAttribute('session');
+    const sessionRef = ref(db, `users/${userId}/sessions/${sessionID}`);
+    remove(sessionRef)
+      .then(() => {
+        card.remove();
+      })
+    return;
+  }
+
+  // Handle opening session
+  if (card && !deleteBtn) {
+    // switch to chat screen
+    document.getElementById("consultations-screen").style.display = "none";
+    document.getElementById("chat-screen").style.display = "flex";
+
+    // update sidebar
+    document.getElementById('home-link').classList.add('active');
+    document.getElementById('chats-link').classList.remove('active');
+    document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
+
+    // load session
+    sessionID = card.getAttribute('session');
+    loadSession(userId, sessionID);
+  }
+});
+}
+
+
 // check file type
 function typeValidation(type) {
   return type === "application/pdf";
@@ -370,6 +382,7 @@ function setActiveScreen(screenId, linkId) {
     document.getElementById("chat-screen").style.display = "none";
     document.getElementById("consultations-screen").style.display = "none";
     document.getElementById("records-screen").style.display = "none";
+    document.getElementById("appointments-screen").style.display = "none";
 
     // Show the selected screen
     document.getElementById(screenId).style.display = "flex";
@@ -384,4 +397,4 @@ function setActiveScreen(screenId, linkId) {
 
     // Change the home link name
     document.getElementById("home-link").textContent = "🧑‍⚕️ Assistant";
-  }
+}

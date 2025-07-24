@@ -106,14 +106,21 @@ html, body {
   background-color: #1976D2; /* Darker Blue */
 }
 
-/* User Info Screen */
+/* Records Screen */
 .records-screen {
   display: none;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  height: 100vh;
+  height: 100%;
   width: 100%;
+}
+
+.records-header {
+  background: #2196F3; /* Blue */
+  color: white;
+  padding: 15px;
+  font-size: 20px;
+  text-align: center;
 }
 
 .container {
@@ -453,4 +460,20 @@ html, body {
 
 .dashboard-card:hover .delete-button {
   display: block;
+}
+
+/* Appointments Screen */
+.appointments-screen {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.appointments-header {
+  background: #2196F3; /* Blue */
+  color: white;
+  padding: 15px;
+  font-size: 20px;
+  text-align: center;
 }
