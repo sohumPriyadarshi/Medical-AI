@@ -96,16 +96,6 @@ window.addEventListener("DOMContentLoaded", () => {
       });
   });
 
-  document.getElementById("continue-button").addEventListener("click", (e) => {
-    e.preventDefault();
-    document.getElementById("user-info-screen").style.display = "none";
-    document.querySelector(".sidebar").style.display = "flex";
-    document.getElementById("chat-screen").style.display = "flex";
-    document.querySelector(".app-wrapper").style.display = "flex";
-    localStorage.setItem("formCompleted", "true");
-    sessionID = crypto.randomUUID();
-  })
-
   // Listen for Enter key in chat input
   document.getElementById('chat-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -126,28 +116,19 @@ window.addEventListener("DOMContentLoaded", () => {
     history.length = 0;
     sessionID = crypto.randomUUID();
     
-    document.getElementById("consultations-screen").style.display = "none";
-    document.getElementById("chat-screen").style.display = "flex";
-
-    // set active link
-    document.getElementById('home-link').classList.add('active');
-    document.getElementById('chats-link').classList.remove('active');
-
-    // change name
-    document.getElementById("home-link").textContent = "🧑‍⚕️ Assistant";
+    setActiveScreen("chat-screen", "home-link");
   });
 
   // Sidebar navigation: Chats link
   document.getElementById('chats-link').addEventListener('click', (e) => {
     e.preventDefault();
-    document.getElementById("chat-screen").style.display = "none";
-    document.getElementById("consultations-screen").style.display = "flex";
+    setActiveScreen("consultations-screen", "chats-link");
+  });
 
-    document.getElementById("home-link").textContent = "🧑‍⚕️ Assistant";
-
-    // set active link
-    document.getElementById('chats-link').classList.add('active');
-    document.getElementById('home-link').classList.remove('active');
+  // Sidebar navigation: Records link
+  document.getElementById('records-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    setActiveScreen("records-screen", "records-link");
   });
 
   // handle dashboard with previous chats
@@ -190,25 +171,20 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     userId = user.uid;
 
-    if (localStorage.getItem("formCompleted") === "true") {
-      document.getElementById("login-screen").style.display = "none";
-      document.getElementById("user-info-screen").style.display = "none";
-      document.querySelector(".sidebar").style.display = "flex";
-      document.getElementById("chat-screen").style.display = "flex";
-      document.querySelector(".app-wrapper").style.display = "flex";
-      previousSessions(userId);
-    } else {
-      document.getElementById("login-screen").style.display = "none";
-      document.getElementById("user-info-screen").style.display = "flex";
-      document.querySelector(".sidebar").style.display = "none";
-      document.getElementById("chat-screen").style.display = "none";
-    }
+    // Always show full app after login
+    document.getElementById("login-screen").style.display = "none";
+    document.querySelector(".sidebar").style.display = "flex";
+    document.querySelector(".app-wrapper").style.display = "flex";
+
+    // Default to chat screen
+    setActiveScreen("chat-screen", "home-link");
+
+    previousSessions(userId);
   } else {
+    // Show login only
     document.getElementById("login-screen").style.display = "flex";
-    document.getElementById("user-info-screen").style.display = "none";
     document.querySelector(".sidebar").style.display = "none";
-    document.getElementById("chat-screen").style.display = "none";
-    localStorage.setItem("formCompleted", "false");
+    document.querySelector(".app-wrapper").style.display = "none";
   }
 });
 
@@ -381,3 +357,24 @@ function iconSelector(type){
     var splitType = (type.split('/')[0] == 'application') ? type.split('/')[1] : type.split('/')[0];
     return splitType + '.png'
 }
+
+function setActiveScreen(screenId, linkId) {
+    // Hide all main screens
+    document.getElementById("chat-screen").style.display = "none";
+    document.getElementById("consultations-screen").style.display = "none";
+    document.getElementById("records-screen").style.display = "none";
+
+    // Show the selected screen
+    document.getElementById(screenId).style.display = "flex";
+
+    // Clear all active link styles
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      link.classList.remove("active");
+    });
+
+    // Set the clicked link as active
+    document.getElementById(linkId).classList.add("active");
+
+    // Change the home link name
+    document.getElementById("home-link").textContent = "🧑‍⚕️ Assistant";
+  }
