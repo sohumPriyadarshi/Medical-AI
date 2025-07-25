@@ -3,6 +3,8 @@ import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 const API_KEY = "AIzaSyCAuzhvTGojtnFUoFgECkFfQbBleulA37w";
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+let text = '';
+let name = null;
 
 const instructions = {
   prompt: `You are an unamed board-certified U.S. general practitioner with over 10 years of experience. You are answering user-submitted medical questions through a virtual consultation platform.
@@ -58,11 +60,16 @@ export async function askGemini(conversation) {
     }
   });
 
-  const rawText = await result.response.text();
-  const data = JSON.parse(rawText);
+  try {
+    const rawText = await result.response.text();
+    const data = JSON.parse(rawText);
 
-  const text = data.response;
-  const name = data.name ?? null;
+    text = data.response;
+    name = data.name ?? null;
+  } catch (error) {
+    text = "Sorry, I encountered an issue understanding the response."
+    name = null;
+  }
 
   return { text, name };
 }
