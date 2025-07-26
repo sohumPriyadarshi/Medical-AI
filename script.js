@@ -108,14 +108,12 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
   });
 
-  document.getElementById('chat-input').addEventListener('input', (e) => {
+  document.getElementById("upload-button").addEventListener('click', (e) => {
     e.preventDefault();
-    // update points
+    setTimeout(() => {
+      alert("File Uploaded!")
+    }, 500)
   });
-
-  // handle dashboard with previous chats
-  handleSessionCards();
-
 
   // Sidebar navigation: Home link
   document.getElementById('home-link').addEventListener('click', (e) => {
@@ -133,6 +131,8 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById('chats-link').addEventListener('click', (e) => {
     e.preventDefault();
     setActiveScreen("consultations-screen", "chats-link");
+    // handle dashboard with previous chats
+    handleSessionCards();
   });
 
   // Sidebar navigation: Records link
