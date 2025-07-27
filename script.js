@@ -23,7 +23,7 @@ const auth = getAuth(app);
 auth.languageCode = 'en';
 const provider = new GoogleAuthProvider();
 
-// variables
+// variables for chats
 const history = [];
 let userId = null;
 let sessionID = crypto.randomUUID();
@@ -35,53 +35,23 @@ const listContainer = document.querySelector(".list")
 const fileSelector = document.querySelector(".file-selector")
 const fileSelectorInput = document.querySelector(".file-selector-input")
 
-// upload files with browse button
-fileSelector.onclick = () => fileSelectorInput.click();
+// variables for calendar
+const calendar = document.getElementById(".calendar");
+const date = document.querySelector(".date");
+const daysContainer = document.querySelector(".days");
+const prev = document.querySelector(".prev");
+const next = document.querySelector(".next");
 
-fileSelectorInput.onchange = () => {
-  [...fileSelectorInput.files].forEach((file) => {
-    if (typeValidation(file.type)) {
-      uploadFile(file);
-    }
-  });
-};
+let today = new Date();
+let activeDay;
+let month = today.getMonth();
+let year = today.getFullYear();
 
-// when file is over the drop area
-dropArea.ondragover = (e) => {
-  e.preventDefault();
-  [...e.dataTransfer.items].forEach((item) => {
-    if (typeValidation(item.type)) {
-      dropArea.classList.add('drag-over-effect');
-    }
-  })
-};
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
 
-// when the file leaves the drop area
-dropArea.ondragleave = () => {
-  dropArea.classList.remove('drag-over-effect');
-}
-
-// when file drop on the drag area
-dropArea.ondrop = (e) => {
-    e.preventDefault();
-    dropArea.classList.remove('drag-over-effect')
-    if(e.dataTransfer.items){
-        [...e.dataTransfer.items].forEach((item) => {
-            if(item.kind === 'file'){
-                const file = item.getAsFile();
-                if(typeValidation(file.type)){
-                    uploadFile(file)
-                }
-            }
-        })
-    }else{
-        [...e.dataTransfer.files].forEach((file) => {
-            if(typeValidation(file.type)){
-                uploadFile(file)
-            }
-        })
-    }
-}
 
 // DOMContentLoaded event: attach UI event listeners
 window.addEventListener("DOMContentLoaded", () => {
@@ -139,6 +109,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById('records-link').addEventListener('click', (e) => {
     e.preventDefault();
     setActiveScreen("records-screen", "records-link");
+    handleUploadScreen()
   });
 
   // Sidebar navigation: Appointments link
@@ -377,6 +348,57 @@ function uploadFile(file){
 function iconSelector(type){
     var splitType = (type.split('/')[0] == 'application') ? type.split('/')[1] : type.split('/')[0];
     return splitType + '.png'
+}
+
+// handle UI and behavior for uploading files
+function handleUploadScreen() {
+  // upload files with browse button
+  fileSelector.onclick = () => fileSelectorInput.click();
+
+  fileSelectorInput.onchange = () => {
+    [...fileSelectorInput.files].forEach((file) => {
+      if (typeValidation(file.type)) {
+        uploadFile(file);
+      }
+    });
+  };
+
+  // when file is over the drop area
+  dropArea.ondragover = (e) => {
+    e.preventDefault();
+    [...e.dataTransfer.items].forEach((item) => {
+      if (typeValidation(item.type)) {
+        dropArea.classList.add('drag-over-effect');
+      }
+    })
+  };
+
+  // when the file leaves the drop area
+  dropArea.ondragleave = () => {
+    dropArea.classList.remove('drag-over-effect');
+  }
+
+  // when file drop on the drag area
+  dropArea.ondrop = (e) => {
+      e.preventDefault();
+      dropArea.classList.remove('drag-over-effect')
+      if(e.dataTransfer.items){
+          [...e.dataTransfer.items].forEach((item) => {
+              if(item.kind === 'file'){
+                  const file = item.getAsFile();
+                  if(typeValidation(file.type)){
+                      uploadFile(file)
+                  }
+              }
+          })
+      }else{
+          [...e.dataTransfer.files].forEach((file) => {
+              if(typeValidation(file.type)){
+                  uploadFile(file)
+              }
+          })
+      }
+  }
 }
 
 function setActiveScreen(screenId, linkId) {
