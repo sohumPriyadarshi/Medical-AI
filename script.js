@@ -1,6 +1,6 @@
 // Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, get, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import { getDatabase, get, ref, set, onValue, remove, query, orderByChild } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { askGemini } from "./gemini.js";
 
@@ -67,24 +67,6 @@ window.addEventListener("DOMContentLoaded", () => {
       });
   });
 
-  // Listen for Enter key in chat input
-  document.getElementById('chat-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      getMessage();
-    }
-
-    // change name
-    document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
-  });
-
-  document.getElementById("upload-button").addEventListener('click', (e) => {
-    e.preventDefault();
-    setTimeout(() => {
-      alert("File Uploaded!")
-    }, 500)
-  });
-
   // Sidebar navigation: Home link
   document.getElementById('home-link').addEventListener('click', (e) => {
     e.preventDefault();
@@ -95,9 +77,20 @@ window.addEventListener("DOMContentLoaded", () => {
     sessionID = crypto.randomUUID();
     
     setActiveScreen("chat-screen", "home-link");
+
+    // Listen for Enter key in chat input
+    document.getElementById('chat-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        getMessage();
+    }
+
+    // change name
+    document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
+  });
   });
 
-  // Sidebar navigation: Chats link
+  // Sidebar navigation: Previous Chats link
   document.getElementById('chats-link').addEventListener('click', (e) => {
     e.preventDefault();
     setActiveScreen("consultations-screen", "chats-link");
@@ -109,7 +102,17 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById('records-link').addEventListener('click', (e) => {
     e.preventDefault();
     setActiveScreen("records-screen", "records-link");
+
+    // handle upload area
     handleUploadScreen()
+
+    // listen for upload
+    document.getElementById("upload-button").addEventListener('click', (e) => {
+      e.preventDefault();
+      setTimeout(() => {
+        alert("File Uploaded!")
+      }, 500)
+    });
   });
 
   // Sidebar navigation: Appointments link
@@ -196,49 +199,48 @@ function updateFirebase(sessionID, response, name) {
         name = sessionData.name;
       }
     }
-    set(sessionRef, { name, history });
+    set(sessionRef, { name, history, createdAt: Date.now()});
     return;
   });
-  set(sessionRef, { name, history });
+  set(sessionRef, { name, history, createdAt: Date.now() });
 }
 
 // Load previous sessions and create buttons dynamically
 function previousSessions(userId) {
   const sessionsRef = ref(db, `users/${userId}/sessions`);
 
-  onValue(sessionsRef, (snapshot) => {
+  onValue(query(sessionsRef, orderByChild('createdAt')), (snapshot) => {
     const dashboard = document.getElementById('consultation-list');
-    const data = snapshot.val();
+    dashboard.innerHTML = ''; // Clear old sessions
 
-    dashboard.innerHTML = ''; // Clear old sessions to avoid duplicates
+    const sessions = [];
+    snapshot.forEach((child) => {
+      sessions.push({ id: child.key, ...child.val() });
+    });
 
-    if (data) {
-      // loop through sessions
-      for (const sessionID in data) {
-        const session = data[sessionID];
+    // Optional: reverse if you want newest sessions first
+    sessions.reverse();
 
-        const button = document.createElement('div');
-        button.className = 'dashboard-card';
-        button.setAttribute('session', sessionID);
+    for (const session of sessions) {
+      const button = document.createElement('div');
+      button.className = 'dashboard-card';
+      button.setAttribute('session', session.id);
 
-        // Add session name
-        const name = document.createElement('div');
-        name.textContent = session.name;
-        name.className = 'session-name';
+      const name = document.createElement('div');
+      name.textContent = session.name;
+      name.className = 'session-name';
 
-        // Add delete button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-button';
-        deleteBtn.innerHTML = '🗑️';
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-button';
+      deleteBtn.innerHTML = '🗑️';
 
-        // Append both to the card
-        button.appendChild(name);
-        button.appendChild(deleteBtn);
-        dashboard.appendChild(button);
-      }
+      button.appendChild(name);
+      button.appendChild(deleteBtn);
+      dashboard.appendChild(button);
     }
   });
 }
+
 
 // Load and display a selected chat session
 function loadSession(userId, sessionID) {
@@ -400,6 +402,69 @@ function handleUploadScreen() {
       }
   }
 }
+
+// populate the calendar with days
+function initCalendar() {
+  // variables to set calendar layout
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const prevLastDay = new Date(year, month, 0);
+  const prevDays = prevLastDay.getDate();
+  const lastDate = lastDay.getDate();
+  const day = firstDay.getDay();
+  const nextDays = 7 - lastDay.getDay() - 1;
+
+  // update date at the top of calendar
+  date.innerHTML = months[month] + " " + year;
+
+  // adding days on dom
+  let days = "";
+
+  //previous month days
+  for (let i = day; i > 0; i--) {
+    days += `<div class="day prev-date" >${prevDays - i + 1}</div>`;
+  }
+
+  // current month days
+  for (let i = 1; i <= lastDate; i++){
+    // add class if day is current day
+    if (i === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()){
+      days += `<div class="day today" >${i}</div>`;
+    }
+    // add remaining days of the month
+    else {
+    days += `<div class="day " >${i}</div>`;
+    }
+  }
+
+  //next month days
+  for (let i = 1; i <= nextDays; i++){
+    days += `<div class="day next-date" >${i}</div>`;
+  }
+
+  daysContainer.innerHTML = days;
+}
+
+// previous month
+function prevMonth() {
+  month--;
+  if (month < 0){
+    month = 11;
+    year --;
+  }
+  initCalendar()
+}
+
+function nextMonth() {
+  month++;
+  if (month > 11){
+    month = 0;
+    year++;
+  }
+  initCalendar()
+}
+
+initCalendar();
 
 function setActiveScreen(screenId, linkId) {
     // Hide all main screens
