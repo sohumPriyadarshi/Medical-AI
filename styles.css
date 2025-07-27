@@ -1,3 +1,8 @@
+:root {
+  --primary-clr: #2196F3;
+  --secondary-clr: #BBDEFB;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -29,7 +34,7 @@ html, body {
 .sidebar h2 {
   margin: 5px 0 40px 0;
   font-size: 20px;
-  color: #2196F3; /* Blue */
+  color: var(--primary-clr); /* Blue */
 }
 
 /* Sidebar Navigation */
@@ -54,11 +59,11 @@ html, body {
 }
 
 .sidebar ul li a:hover {
-  background-color: #BBDEFB; /* Light Blue */
+  background-color: var(--secondary-clr); /* Light Blue */
 }
 
 .sidebar ul li a.active {
-  background-color: #2196F3; /* Blue */
+  background-color: var(--primary-clr); /* Blue */
   color: white;
 }
 
@@ -92,7 +97,7 @@ html, body {
 }
 
 #google-login-button {
-  background-color: #2196F3; /* Blue */
+  background-color: var(--primary-clr); /* Blue */
   color: white;
   border: none;
   padding: 10px 20px;
@@ -116,7 +121,7 @@ html, body {
 }
 
 .records-header {
-  background: #2196F3; /* Blue */
+  background: var(--primary-clr); /* Blue */
   color: white;
   padding: 15px;
   font-size: 20px;
@@ -331,7 +336,7 @@ html, body {
 
 /* Chat UI */
 .chat-header {
-  background: #2196F3; /* Blue */
+  background: var(--primary-clr); /* Blue */
   color: white;
   padding: 15px;
   font-size: 20px;
@@ -381,7 +386,7 @@ html, body {
 }
 
 .chat-input button {
-  background: #2196F3; /* Blue */
+  background: var(--primary-clr); /* Blue */
   color: white;
   border: none;
   padding: 10px 15px;
@@ -404,7 +409,7 @@ html, body {
 
 /* Header */
 .consultations-header {
-  background: #2196F3; /* Blue */
+  background: var(--primary-clr); /* Blue */
   color: white;
   padding: 15px;
   font-size: 20px;
@@ -449,7 +454,7 @@ html, body {
 }
 
 .dashboard-card:hover {
-  background-color: #BBDEFB; /* Light Blue */
+  background-color: var(--secondary-clr); /* Light Blue */
   transform: scale(1.05);
   font-size: 18px;
 }
@@ -467,12 +472,18 @@ html, body {
   display: none;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  width: 100%;
+  min-height: 100vh;
   position: relative;
 }
+
+.appointments-screen * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .appointments-header {
-  background: #2196F3; /* Blue */
+  background: var(--primary-clr); /* Blue */
   color: white;
   padding: 15px;
   font-size: 20px;
@@ -491,11 +502,12 @@ html, body {
   padding: 5px;
   color: #fff;
   display: flex;
+
   border-radius: 10px;
   background-color: #373c4f;
 }
 .left {
-  width: 60%;
+  width: 90%;
   padding: 20px;
 }
 .calendar {
@@ -510,6 +522,7 @@ html, body {
   border-radius: 5px;
   background-color: #fff;
 }
+
 .calendar::before,
 .calendar::after {
   content: "";
@@ -519,8 +532,8 @@ html, body {
   width: 12px;
   height: 97%;
   border-radius: 0 5px 5px 0;
-  background-color: #d3d5d6d7;
-  transform: translateY(-50%)
+  background-color: #d3d4d6d7;
+  transform: translateY(-50%);
 }
 .calendar::before {
   height: 94%;
@@ -544,5 +557,139 @@ html, body {
 }
 .calendar .month .prev:hover,
 .calendar .month .next:hover {
-  color: #2196F3;
+  color: var(--primary-clr);
+}
+.calendar .weekdays {
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+.calendar .weekdays div{
+  width: 14.28%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendar .days {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+.calendar .days .day {
+  width: 14.28%;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--primary-clr);
+  border: 1px solid #f5f5f5;
+}
+.calendar .day:not(.prev-date, .next-date):hover {
+  color: #fff;
+  background-color: var(--secondary-clr);
+}
+.calendar .days .prev-date,
+.calendar .days .next-date {
+  color: #b3b3b3
+}
+.calendar .days .active {
+  position: relative;
+  font-size: 2rem;
+  color: #fff;
+  background-color: var(--primary-clr);
+}
+.calendar .days .active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 0 10px 2px var(--primary-clr);
+}
+.calendar .days .today {
+  font-size: 2rem;
+}
+.calendar .days .event {
+  position: relative;
+}
+.calendar .days .event::after {
+  content: "";
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  width: 75%;
+  height: 6px;
+  border-radius: 30px;
+  transform: translateX(-50%);
+  background-color: var(--primary-clr);
+}
+.calendar .days .day:hover.event::after {
+  background-color: #fff;
+}
+.calendar .days .active.event::after {
+  background-color: #fff;
+  bottom: 20%;
+}
+.calendar .days .active.event {
+  padding-bottom: 10px;
+}
+.calendar .goto-today {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 0 20px;
+  margin-bottom: 20px;
+  color: var(--primary-clr);
+}
+.calendar .goto-today .goto {
+  display: flex;
+  align-items: center;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid var(--primary-clr);
+}
+.calendar .goto-today .goto input {
+  width: 100%;
+  height: 30px;
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  padding: 0 20px;
+  color: var(--primary-clr);
+  border-radius: 5px;
+}
+.calendar .goto-today button {
+  height: 30px;
+  padding: 5px 10px;
+  border: 1px solid var(--primary-clr);
+  border-radius: 5px;
+  background-color: transparent;
+  cursor: pointer;
+  color: var(--primary-clr);
+}
+.calendar .goto-today button:hover {
+  color: #fff;
+  background-color: var(--primary-clr);
+}
+.calendar .goto-today .goto button {
+  border: none;
+  border-left: 1px solid var(--primary-clr);
+  border-radius: 0;
 }

@@ -160,7 +160,7 @@ onAuthStateChanged(auth, (user) => {
     document.querySelector(".app-wrapper").style.display = "flex";
 
     // Default to chat screen
-    setActiveScreen("chat-screen", "home-link");
+    setActiveScreen("appointments-screen", "appointments-link");
 
     previousSessions(userId);
   } else {
@@ -221,7 +221,9 @@ function updateFirebase(sessionID, response, name) {
   get(sessionRef).then(snapshot => {
     const sessionData = snapshot.val();
     if (sessionData && sessionData.name) {
-      name = sessionData.name;
+      if (sessionData.name[0] != '0') {
+        name = sessionData.name;
+      }
     }
     set(sessionRef, { name, history });
     return;
