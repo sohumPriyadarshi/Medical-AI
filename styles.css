@@ -6,7 +6,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: Georgia, sans-serif;
+  font-family: Georgia, Serif;
   background: #f2f2f2;
   height: 100%;
 }
@@ -507,7 +507,7 @@ html, body {
   background-color: #373c4f;
 }
 .left {
-  width: 90%;
+  width: 60%;
   padding: 20px;
 }
 .calendar {
@@ -547,7 +547,7 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: 0 50px;
-  font-size: 1.2rem;
+  font-size: 1.75rem;
   font-weight: 500;
   text-transform: capitalize;
 }

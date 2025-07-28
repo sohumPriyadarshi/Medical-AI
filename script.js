@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getDatabase, get, ref, set, onValue, remove, query, orderByChild } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 import { askGemini } from "./gemini.js";
 
 // Firebase config
@@ -10,7 +11,7 @@ const firebaseConfig = {
   authDomain: "ai-doctor-3c61b.firebaseapp.com",
   databaseURL: "https://ai-doctor-3c61b-default-rtdb.firebaseio.com",
   projectId: "ai-doctor-3c61b",
-  storageBucket: "ai-doctor-3c61b.appspot.com",
+  storageBucket: "ai-doctor-3c61b.firebasestorage.app",
   messagingSenderId: "1061105015789",
   appId: "1:1061105015789:web:3ecb011765a4e5ee4a65e4",
   measurementId: "G-VQL0H21RZ8"
@@ -20,6 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
+const storage = getStorage(app)
 auth.languageCode = 'en';
 const provider = new GoogleAuthProvider();
 
@@ -41,6 +43,9 @@ const date = document.querySelector(".date");
 const daysContainer = document.querySelector(".days");
 const prev = document.querySelector(".prev");
 const next = document.querySelector(".next");
+const todayBtn = document.querySelector(".today-btn");
+const gotoBtn = document.querySelector(".goto-btn")
+const dateInput = document.querySelector(".date-input")
 
 let today = new Date();
 let activeDay;
@@ -119,6 +124,29 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById('appointments-link').addEventListener('click', (e) => {
     e.preventDefault();
     setActiveScreen("appointments-screen", "appointments-link");
+
+    //control calendar
+    initCalendar();
+    prev.addEventListener("click", prevMonth);
+    next.addEventListener("click", nextMonth);
+    todayBtn.addEventListener("click", () => {
+      today = new Date();
+      month = today.getMonth();
+      year = today.getFullYear();
+      initCalendar();
+    });
+    dateInput.addEventListener("keyup", (e) => {
+      if (e.key != 'Backspace') {
+        dateInput.value = dateInput.value.replace(/[^0-9/]/g, "") // only allow numbers, remove anything else
+        if (dateInput.value.length === 2) {
+          dateInput.value += "/";
+        }
+        if (dateInput.value.length > 7) {
+          dateInput.value = dateInput.value.slice(0, 7)
+        }
+      }
+    })
+    gotoBtn.addEventListener("click", gotoDate)
   });
 });
 
@@ -134,7 +162,7 @@ onAuthStateChanged(auth, (user) => {
     document.querySelector(".app-wrapper").style.display = "flex";
 
     // Default to chat screen
-    setActiveScreen("appointments-screen", "appointments-link");
+    setActiveScreen("chat-screen", "home-link");
 
     previousSessions(userId);
   } else {
@@ -304,52 +332,71 @@ function typeValidation(type) {
   return type === "application/pdf";
 }
 
-// upload file function
-function uploadFile(file){
-    listSection.style.display = 'block'
-    var li = document.createElement('li')
-    li.classList.add('in-prog')
-    li.innerHTML = `
-        <div class="col">
-            <img src="icons/${iconSelector(file.type)}" alt="">
-        </div>
-        <div class="col">
-            <div class="file-name">
-                <div class="name">${file.name}</div>
-                <span>0%</span>
-            </div>
-            <div class="file-progress">
-                <span></span>
-            </div>
-            <div class="file-size">${(file.size/(1024*1024)).toFixed(2)} MB</div>
-        </div>
-        <div class="col">
-            <svg xmlns="http://www.w3.org/2000/svg" class="cross" height="20" width="20"><path d="m5.979 14.917-.854-.896 4-4.021-4-4.062.854-.896 4.042 4.062 4-4.062.854.896-4 4.062 4 4.021-.854.896-4-4.063Z"/></svg>
-            <svg xmlns="http://www.w3.org/2000/svg" class="tick" height="20" width="20"><path d="m8.229 14.438-3.896-3.917 1.438-1.438 2.458 2.459 6-6L15.667 7Z"/></svg>
-        </div>
-    `
-    listContainer.prepend(li)
-    var http = new XMLHttpRequest()
-    var data = new FormData()
-    data.append('file', file)
-    http.onload = () => {
-        li.classList.add('complete')
-        li.classList.remove('in-prog')
+// upload file to Firebase Storage
+function uploadFile(file) {
+  listSection.style.display = 'block';
+  const li = document.createElement('li');
+  li.classList.add('in-prog');
+  li.innerHTML = `
+      <div class="col">
+          <img src="icons/${iconSelector(file.type)}" alt="">
+      </div>
+      <div class="col">
+          <div class="file-name">
+              <div class="name">${file.name}</div>
+              <span>0%</span>
+          </div>
+          <div class="file-progress">
+              <span></span>
+          </div>
+          <div class="file-size">${(file.size / (1024 * 1024)).toFixed(2)} MB</div>
+      </div>
+      <div class="col">
+          <svg xmlns="http://www.w3.org/2000/svg" class="cross" height="20" width="20">
+              <path d="m5.979 14.917-.854-.896 4-4.021-4-4.062.854-.896 4.042 4.062 4-4.062.854.896-4 4.062 4 4.021-.854.896-4-4.063Z"/>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="tick" height="20" width="20">
+              <path d="m8.229 14.438-3.896-3.917 1.438-1.438 2.458 2.459 6-6L15.667 7Z"/>
+          </svg>
+      </div>
+  `;
+  listContainer.prepend(li);
+
+  const fileRef = storageRef(storage, 'uploads/' + file.name);
+  const uploadTask = uploadBytesResumable(fileRef, file);
+
+  // Cancel upload
+  li.querySelector('.cross').onclick = () => uploadTask.cancel();
+
+  uploadTask.on(
+    'state_changed',
+    (snapshot) => {
+      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      li.querySelectorAll('span')[0].innerHTML = Math.round(progress) + '%';
+      li.querySelectorAll('span')[1].style.width = progress + '%';
+    },
+    (error) => {
+      if (error.code === 'storage/canceled') {
+        li.remove();
+      } else {
+        console.error('Upload failed:', error);
+        li.querySelectorAll('span')[0].innerHTML = 'Error';
+      }
+    },
+    () => {
+      li.classList.add('complete');
+      li.classList.remove('in-prog');
+      getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+        console.log('Download URL:', url); // optional
+      });
     }
-    http.upload.onprogress = (e) => {
-        var percent_complete = (e.loaded / e.total)*100
-        li.querySelectorAll('span')[0].innerHTML = Math.round(percent_complete) + '%'
-        li.querySelectorAll('span')[1].style.width = percent_complete + '%'
-    }
-    http.open('POST', 'sender.php', true)
-    http.send(data)
-    li.querySelector('.cross').onclick = () => http.abort()
-    http.onabort = () => li.remove()
+  );
 }
-// find icon for file
-function iconSelector(type){
-    var splitType = (type.split('/')[0] == 'application') ? type.split('/')[1] : type.split('/')[0];
-    return splitType + '.png'
+
+// iconSelector remains the same
+function iconSelector(type) {
+  const splitType = (type.split('/')[0] === 'application') ? type.split('/')[1] : type.split('/')[0];
+  return splitType + '.png';
 }
 
 // handle UI and behavior for uploading files
@@ -372,36 +419,37 @@ function handleUploadScreen() {
       if (typeValidation(item.type)) {
         dropArea.classList.add('drag-over-effect');
       }
-    })
+    });
   };
 
   // when the file leaves the drop area
   dropArea.ondragleave = () => {
     dropArea.classList.remove('drag-over-effect');
-  }
+  };
 
-  // when file drop on the drag area
+  // when file drops on the drag area
   dropArea.ondrop = (e) => {
-      e.preventDefault();
-      dropArea.classList.remove('drag-over-effect')
-      if(e.dataTransfer.items){
-          [...e.dataTransfer.items].forEach((item) => {
-              if(item.kind === 'file'){
-                  const file = item.getAsFile();
-                  if(typeValidation(file.type)){
-                      uploadFile(file)
-                  }
-              }
-          })
-      }else{
-          [...e.dataTransfer.files].forEach((file) => {
-              if(typeValidation(file.type)){
-                  uploadFile(file)
-              }
-          })
-      }
-  }
+    e.preventDefault();
+    dropArea.classList.remove('drag-over-effect');
+    if (e.dataTransfer.items) {
+      [...e.dataTransfer.items].forEach((item) => {
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          if (typeValidation(file.type)) {
+            uploadFile(file);
+          }
+        }
+      });
+    } else {
+      [...e.dataTransfer.files].forEach((file) => {
+        if (typeValidation(file.type)) {
+          uploadFile(file);
+        }
+      });
+    }
+  };
 }
+
 
 // populate the calendar with days
 function initCalendar() {
@@ -464,7 +512,18 @@ function nextMonth() {
   initCalendar()
 }
 
-initCalendar();
+function gotoDate() {
+  const dateArr = dateInput.value.split("/");
+  if (dateArr.length === 2) {
+    if (dateArr[0] > 0 && dateArr[0] < 13 && dateArr[1].length === 4) {
+      month = dateArr[0] - 1;
+      year = dateArr[1];
+      initCalendar();
+      return;
+    }
+  }
+  alert("Invalid Date");
+}
 
 function setActiveScreen(screenId, linkId) {
     // Hide all main screens
