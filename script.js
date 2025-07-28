@@ -1,6 +1,6 @@
 // Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, get, ref, set, onValue, remove, query, orderByChild } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import { getDatabase, get, ref, set, onValue, remove, query, orderByChild, update } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 import { askGemini } from "./gemini.js";
@@ -36,9 +36,16 @@ const listSection = document.querySelector(".list-section")
 const listContainer = document.querySelector(".list")
 const fileSelector = document.querySelector(".file-selector")
 const fileSelectorInput = document.querySelector(".file-selector-input")
+const allowedFileTypes = [
+  "application/pdf",         // PDF
+  "image/jpeg",              // JPG/JPEG
+  "image/png",               // PNG
+  "application/msword",      // .doc (older Word)
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document" // .docx
+];
+
 
 // variables for calendar
-const calendar = document.getElementById(".calendar");
 const date = document.querySelector(".date");
 const daysContainer = document.querySelector(".days");
 const prev = document.querySelector(".prev");
@@ -57,6 +64,9 @@ const months = [
   "July", "August", "September", "October", "November", "December"
 ];
 
+// other variables
+const maxPoints = 300;
+let overlayTimeout;
 
 // DOMContentLoaded event: attach UI event listeners
 window.addEventListener("DOMContentLoaded", () => {
@@ -72,6 +82,17 @@ window.addEventListener("DOMContentLoaded", () => {
       });
   });
 
+  // Listen for Enter key in chat input
+  document.getElementById('chat-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      getMessage();
+
+      // change name
+      document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
+    }
+  });
+
   // Sidebar navigation: Home link
   document.getElementById('home-link').addEventListener('click', (e) => {
     e.preventDefault();
@@ -82,20 +103,10 @@ window.addEventListener("DOMContentLoaded", () => {
     sessionID = crypto.randomUUID();
     
     setActiveScreen("chat-screen", "home-link");
-
-    // Listen for Enter key in chat input
-    document.getElementById('chat-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        getMessage();
-    }
-
-    // change name
-    document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
   });
   });
 
-  // Sidebar navigation: Previous Chats link
+  // Sidebar navigation: Chats link
   document.getElementById('chats-link').addEventListener('click', (e) => {
     e.preventDefault();
     setActiveScreen("consultations-screen", "chats-link");
@@ -110,14 +121,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // handle upload area
     handleUploadScreen()
-
-    // listen for upload
-    document.getElementById("upload-button").addEventListener('click', (e) => {
-      e.preventDefault();
-      setTimeout(() => {
-        alert("File Uploaded!")
-      }, 500)
-    });
   });
 
   // Sidebar navigation: Appointments link
@@ -133,6 +136,7 @@ window.addEventListener("DOMContentLoaded", () => {
       today = new Date();
       month = today.getMonth();
       year = today.getFullYear();
+      dateInput.value = "";
       initCalendar();
     });
     dateInput.addEventListener("keyup", (e) => {
@@ -148,7 +152,6 @@ window.addEventListener("DOMContentLoaded", () => {
     })
     gotoBtn.addEventListener("click", gotoDate)
   });
-});
 
 
 // Firebase auth state listener
@@ -329,7 +332,7 @@ function handleSessionCards() {
 
 // check file type
 function typeValidation(type) {
-  return type === "application/pdf";
+  return allowedFileTypes.includes(type)
 }
 
 // upload file to Firebase Storage
@@ -386,9 +389,9 @@ function uploadFile(file) {
     () => {
       li.classList.add('complete');
       li.classList.remove('in-prog');
-      getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-        console.log('Download URL:', url); // optional
-      });
+      setTimeout(() => {
+        updatePoints(10);
+      }, 500);
     }
   );
 }
@@ -408,6 +411,8 @@ function handleUploadScreen() {
     [...fileSelectorInput.files].forEach((file) => {
       if (typeValidation(file.type)) {
         uploadFile(file);
+      } else {
+        alert("Only PDF, JPG, PNG, or Word files are allowed.");
       }
     });
   };
@@ -418,6 +423,8 @@ function handleUploadScreen() {
     [...e.dataTransfer.items].forEach((item) => {
       if (typeValidation(item.type)) {
         dropArea.classList.add('drag-over-effect');
+      } else {
+        alert("Only PDF, JPG, PNG, or Word files are allowed.");
       }
     });
   };
@@ -437,6 +444,8 @@ function handleUploadScreen() {
           const file = item.getAsFile();
           if (typeValidation(file.type)) {
             uploadFile(file);
+          } else {
+            alert("Only PDF, JPG, PNG, or Word files are allowed.");
           }
         }
       });
@@ -444,7 +453,9 @@ function handleUploadScreen() {
       [...e.dataTransfer.files].forEach((file) => {
         if (typeValidation(file.type)) {
           uploadFile(file);
-        }
+        }else {
+        alert("Only PDF, JPG, PNG, or Word files are allowed.");
+      }
       });
     }
   };
@@ -545,4 +556,54 @@ function setActiveScreen(screenId, linkId) {
 
     // Change the home link name
     document.getElementById("home-link").textContent = "🧑‍⚕️ Assistant";
+}
+
+function updatePoints(newPoints) {
+  const overlay = document.getElementById('points-overlay');
+  const currentBar = document.getElementById('currentBar');
+  const futureBar = document.getElementById('futureBar');
+  const label = document.getElementById('pointsLabel');
+
+  get(ref(db, `users/${userId}/points`)).then((snapshot) => {
+    const currentPoints = snapshot.val() || 0;
+    const newTotal = currentPoints + newPoints;
+
+    // Update DB
+    update(ref(db, `users/${userId}`), { points: newTotal });
+
+    const startPercent = Math.min((currentPoints / maxPoints) * 100, 100);
+    const endPercent = Math.min((newTotal / maxPoints) * 100, 100);
+
+    // Set futureBar to full target
+    futureBar.style.width = `${endPercent}%`;
+
+    // Set currentBar to current width instantly
+    currentBar.style.transition = 'none';
+    currentBar.style.width = `${startPercent}%`;
+
+    // Force layout so the transition kicks in
+    void currentBar.offsetWidth;
+
+    // Animate to new width
+    currentBar.style.transition = 'width 1s ease-out';
+    currentBar.style.width = `${endPercent}%`;
+
+    // Update label
+    label.textContent = `+${newPoints} pts`;
+
+    // Show overlay
+    overlay.classList.add('active');
+
+    // Hide overlay after 2.5s
+    clearTimeout(overlayTimeout);
+    overlayTimeout = setTimeout(() => {
+      overlay.classList.remove('active');
+
+      setTimeout(() => {
+        currentBar.style.width = '0%';
+        futureBar.style.width = '0%';
+        label.textContent = '';
+      }, 400);
+    }, 2500);
+  });
 }

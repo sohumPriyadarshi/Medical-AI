@@ -687,3 +687,69 @@ html, body {
   border-left: 1px solid var(--primary-clr);
   border-radius: 0;
 }
+
+/* Overlay background */
+.points-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.points-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Progress bar container */
+.bar-container {
+  position: relative;
+  width: 50%;
+  height: 40px;
+  background: #ddd;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+/* Background bar */
+.future-bar {
+  position: absolute;
+  height: 100%;
+  width: 0%;
+  background: var(--secondary-clr);
+  z-index: 1;
+}
+
+/* Foreground animated bar */
+.current-bar {
+  position: absolute;
+  height: 100%;
+  width: 0%;
+  background: var(--primary-clr);
+  z-index: 2;
+  transition: width 1s ease-out;
+}
+
+/* Points label text */
+.points-label {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 40px;
+  z-index: 3;
+  text-shadow: 1px 1px 2px #000;
+}
