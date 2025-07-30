@@ -365,7 +365,7 @@ function uploadFile(file) {
   `;
   listContainer.prepend(li);
 
-  const fileRef = storageRef(storage, 'uploads/' + file.name);
+  const fileRef = storageRef(storage, `uploads/${userId}` + file.name);
   const uploadTask = uploadBytesResumable(fileRef, file);
 
   // Cancel upload
@@ -562,7 +562,8 @@ function updatePoints(newPoints) {
   const overlay = document.getElementById('points-overlay');
   const currentBar = document.getElementById('currentBar');
   const futureBar = document.getElementById('futureBar');
-  const label = document.getElementById('pointsLabel');
+  const pointsAdditionLabel = document.getElementById('pointsLabel');
+  const totalPointsLabel = document.getElementById("currentLabel");
 
   get(ref(db, `users/${userId}/points`)).then((snapshot) => {
     const currentPoints = snapshot.val() || 0;
@@ -589,7 +590,8 @@ function updatePoints(newPoints) {
     currentBar.style.width = `${endPercent}%`;
 
     // Update label
-    label.textContent = `+${newPoints} pts`;
+    pointsAdditionLabel.textContent = `+${newPoints} pts`;
+    totalPointsLabel.textContent = `${newTotal}`;
 
     // Show overlay
     overlay.classList.add('active');
@@ -602,7 +604,8 @@ function updatePoints(newPoints) {
       setTimeout(() => {
         currentBar.style.width = '0%';
         futureBar.style.width = '0%';
-        label.textContent = '';
+        pointsAdditionLabel.textContent = '';
+        totalPointsLabel.textContent = "";
       }, 400);
     }, 2500);
   });

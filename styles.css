@@ -753,3 +753,16 @@ html, body {
   z-index: 3;
   text-shadow: 1px 1px 2px #000;
 }
+
+.current-label {
+  position: absolute;
+  right: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #fff;
+  font-weight: bold;
+  z-index: 4;
+  text-shadow: 1px 1px 2px #000;
+}
