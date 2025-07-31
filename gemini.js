@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 const API_KEY = "AIzaSyCAuzhvTGojtnFUoFgECkFfQbBleulA37w";
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-let text = '';
+let text = "";
 let name = null;
 
 const instructions = {
@@ -38,26 +38,29 @@ Style Guidelines:
 
 Never downplay serious symptoms. If life-threatening possibilities exist, advise ER/urgent care.
 
-If the user is vague, ask up to 3 clarifying questions before proceeding.`
+If the user is vague, ask up to 3 clarifying questions before proceeding.`,
 };
 
 export async function askGemini(conversation) {
-  const systemInstruction = { role: "user", parts: [{ text: instructions.prompt }] };
+  const systemInstruction = {
+    role: "user",
+    parts: [{ text: instructions.prompt }],
+  };
 
   const contents = [
     systemInstruction,
-    ...conversation.map(msg => ({
+    ...conversation.map((msg) => ({
       role: msg.role === "assistant" ? "model" : "user",
-      parts: [{ text: msg.content }]
-    }))
+      parts: [{ text: msg.content }],
+    })),
   ];
 
   const result = await model.generateContent({
     contents,
     generationConfig: {
       temperature: 0.1,
-      responseMimeType: "application/json"
-    }
+      responseMimeType: "application/json",
+    },
   });
 
   try {
@@ -67,7 +70,7 @@ export async function askGemini(conversation) {
     text = data.response;
     name = data.name ?? null;
   } catch (error) {
-    text = "Sorry, I encountered an issue understanding the response."
+    text = "Sorry, I encountered an issue understanding the response.";
     name = null;
   }
 

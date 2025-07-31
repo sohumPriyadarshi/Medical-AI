@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Assistant</title>
-  <link
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assistant</title>
+    <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
       integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
@@ -12,126 +12,133 @@
       referrerpolicy="no-referrer"
     />
     <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-
-  <!-- Login Screen -->
-  <div class="login-screen" id="login-screen">
-    <h1>Login to use the Doctor</h1>
-    <button id="google-login-button">Sign in with Google</button>
-  </div>
-
-  <!-- Points update animation -->
-  <div class="points-overlay" id="points-overlay">
-    <div class="bar-container">
-      <div class="future-bar" id="futureBar"></div>
-      <div class="current-bar" id="currentBar">
-        <div class="current-label" id="currentLabel">0 pts</div>
-      </div>
-      <div class="points-label" id="pointsLabel">+0 pts</div>
-    </div>
-  </div>
-
-  <!-- App Wrapper for Sidebar + Main Content -->
-  <div class="app-wrapper" id="main-app">
-    
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <h2>AI Doctor</h2>
-      <ul>
-        <li><a href="#" id="home-link" class="active">🧑‍⚕️ Assistant</a></li>
-        <li><a href="#" id="chats-link">💬 Chats</a></li>
-        <li><a href="#" id="records-link">📁 Records</a></li>
-        <li><a href="#" id="appointments-link">📅 Appointments</a></li>
-        <li class="spaced-item"><a href="#">⚙️ Profile</a></li>
-      </ul>
+  </head>
+  <body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="login-screen">
+      <h1>Login to use the Doctor</h1>
+      <button id="google-login-button">Sign in with Google</button>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="main-content">
-      <!-- Chat Screen -->
-      <div class="chat-screen" id="chat-screen">
-        <div class="chat-header">🧑‍⚕️ Assistant</div>
-        <div class="chat-container" id="chat-container"></div>
-        <div class="chat-input">
-          <input type="text" id="chat-input" placeholder="Type a message" required />
-          <button onclick="getMessage()">Send</button>
+    <!-- Points update animation -->
+    <div class="points-overlay" id="points-overlay">
+      <div class="bar-container">
+        <div class="future-bar" id="futureBar"></div>
+        <div class="current-bar" id="currentBar">
+          <div class="current-label" id="currentLabel">0 pts</div>
         </div>
+        <div class="points-label" id="pointsLabel">+0 pts</div>
+      </div>
+    </div>
+
+    <!-- App Wrapper for Sidebar + Main Content -->
+    <div class="app-wrapper" id="main-app">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <h2>AI Doctor</h2>
+        <ul>
+          <li><a href="#" id="home-link" class="active">🧑‍⚕️ Assistant</a></li>
+          <li><a href="#" id="chats-link">💬 Chats</a></li>
+          <li><a href="#" id="records-link">📁 Records</a></li>
+          <li><a href="#" id="appointments-link">📅 Appointments</a></li>
+          <li class="spaced-item"><a href="#">⚙️ Profile</a></li>
+        </ul>
       </div>
 
-      <!-- Consultations Screen -->
-      <div class="consultations-screen" id="consultations-screen">
-        <div class="consultations-header">💬 Chats</div>
-        <div class="consultation-list" id="consultation-list">
-          <div class="consultation-list" id="consultation-list"></div>
-        </div>
-      </div>
-
-      <!-- Medical Records Screen -->
-      <div class="records-screen" id="records-screen">
-        <div class="records-header">📁 Records</div>
-        <div class="record-container">
-          <div class="header-section">
-            <h1>Upload Files</h1>
-            <p>Upload Medical Records</p>
+      <!-- Main Content Area -->
+      <div class="main-content">
+        <!-- Chat Screen -->
+        <div class="chat-screen" id="chat-screen">
+          <div class="chat-header">🧑‍⚕️ Assistant</div>
+          <div class="chat-container" id="chat-container"></div>
+          <div class="chat-input">
+            <input
+              type="text"
+              id="chat-input"
+              placeholder="Type a message"
+              required
+            />
+            <button onclick="getMessage()">Send</button>
           </div>
-          <div class="drop-section">
-            <div class="col">
-              <div class="cloud-icon">
-                <img src="icons/cloud.png" alt="cloud">
-              </div>
-              <span>Drag & Drop your files here</span>
-              <span>OR</span>
-              <button class="file-selector">Browse Files</button>
-              <input type="file" class="file-selector-input" multiple>
+        </div>
+
+        <!-- Consultations Screen -->
+        <div class="consultations-screen" id="consultations-screen">
+          <div class="consultations-header">💬 Chats</div>
+          <div class="consultation-list" id="consultation-list">
+            <div class="consultation-list" id="consultation-list"></div>
+          </div>
+        </div>
+
+        <!-- Medical Records Screen -->
+        <div class="records-screen" id="records-screen">
+          <div class="records-header">📁 Records</div>
+          <div class="record-container">
+            <div class="header-section">
+              <h1>Upload Files</h1>
+              <p>Upload Medical Records</p>
             </div>
-            <div class="col">
-              <div class="drop-here">Drop Here</div>
-            </div>
-          </div>
-          <div class="list-section">
-            <div class="list-title">Uploaded Files</div>
-            <div class="list"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Appointments Screen -->
-      <div class="appointments-screen" id="appointments-screen">
-        <div class="appointments-header">📅 Appointments</div>
-        <div class="appointments-container">
-          <div class="left">
-            <div class="calendar">
-              <div class="month">
-                <i class="fa fa-angle-left prev"></i>
-                <div class="date">July 2025</div>
-                <i class="fa fa-angle-right next"></i>
-              </div>
-              <div class="weekdays">
-                <div>Sun</div>
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-              </div>
-              <div class="days">
-                <!-- update with js -->
-              </div>
-              <div class="goto-today">
-                <div class="goto">
-                  <input type="text" placeholder="mm/yyyy" class="date-input">
-                  <button class="goto-btn">go</button>
+            <div class="drop-section">
+              <div class="col">
+                <div class="cloud-icon">
+                  <img src="icons/cloud.png" alt="cloud" />
                 </div>
-                <button class="today-btn">Today</button>
+                <span>Drag & Drop your files here</span>
+                <span>OR</span>
+                <button class="file-selector">Browse Files</button>
+                <input type="file" class="file-selector-input" multiple />
+              </div>
+              <div class="col">
+                <div class="drop-here">Drop Here</div>
+              </div>
+            </div>
+            <div class="list-section">
+              <div class="list-title">Uploaded Files</div>
+              <div class="list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appointments Screen -->
+        <div class="appointments-screen" id="appointments-screen">
+          <div class="appointments-header">📅 Appointments</div>
+          <div class="appointments-container">
+            <div class="left">
+              <div class="calendar">
+                <div class="month">
+                  <i class="fa fa-angle-left prev"></i>
+                  <div class="date">July 2025</div>
+                  <i class="fa fa-angle-right next"></i>
+                </div>
+                <div class="weekdays">
+                  <div>Sun</div>
+                  <div>Mon</div>
+                  <div>Tue</div>
+                  <div>Wed</div>
+                  <div>Thu</div>
+                  <div>Fri</div>
+                  <div>Sat</div>
+                </div>
+                <div class="days">
+                  <!-- update with js -->
+                </div>
+                <div class="goto-today">
+                  <div class="goto">
+                    <input
+                      type="text"
+                      placeholder="mm/yyyy"
+                      class="date-input"
+                    />
+                    <button class="goto-btn">go</button>
+                  </div>
+                  <button class="today-btn">Today</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <script type="module" src="script.js"></script>
-</body>
+    <script type="module" src="script.js"></script>
+  </body>
 </html>

@@ -1,8 +1,28 @@
 // Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, get, ref, set, onValue, remove, query, orderByChild, update } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+import {
+  getDatabase,
+  get,
+  ref,
+  set,
+  onValue,
+  remove,
+  query,
+  orderByChild,
+  update,
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 import { askGemini } from "./gemini.js";
 
 // Firebase config
@@ -14,15 +34,15 @@ const firebaseConfig = {
   storageBucket: "ai-doctor-3c61b.firebasestorage.app",
   messagingSenderId: "1061105015789",
   appId: "1:1061105015789:web:3ecb011765a4e5ee4a65e4",
-  measurementId: "G-VQL0H21RZ8"
+  measurementId: "G-VQL0H21RZ8",
 };
 
 // Initialize Firebase app, database, and auth
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
-const storage = getStorage(app)
-auth.languageCode = 'en';
+const storage = getStorage(app);
+auth.languageCode = "en";
 const provider = new GoogleAuthProvider();
 
 // variables for chats
@@ -31,19 +51,17 @@ let userId = null;
 let sessionID = crypto.randomUUID();
 
 // variables for file upload
-const dropArea = document.querySelector(".drop-section")
-const listSection = document.querySelector(".list-section")
-const listContainer = document.querySelector(".list")
-const fileSelector = document.querySelector(".file-selector")
-const fileSelectorInput = document.querySelector(".file-selector-input")
+const dropArea = document.querySelector(".drop-section");
+const listSection = document.querySelector(".list-section");
+const listContainer = document.querySelector(".list");
+const fileSelector = document.querySelector(".file-selector");
+const fileSelectorInput = document.querySelector(".file-selector-input");
 const allowedFileTypes = [
-  "application/pdf",         // PDF
-  "image/jpeg",              // JPG/JPEG
-  "image/png",               // PNG
-  "application/msword",      // .doc (older Word)
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document" // .docx
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
 ];
-
 
 // variables for calendar
 const date = document.querySelector(".date");
@@ -51,8 +69,8 @@ const daysContainer = document.querySelector(".days");
 const prev = document.querySelector(".prev");
 const next = document.querySelector(".next");
 const todayBtn = document.querySelector(".today-btn");
-const gotoBtn = document.querySelector(".goto-btn")
-const dateInput = document.querySelector(".date-input")
+const gotoBtn = document.querySelector(".goto-btn");
+const dateInput = document.querySelector(".date-input");
 
 let today = new Date();
 let activeDay;
@@ -60,8 +78,18 @@ let month = today.getMonth();
 let year = today.getFullYear();
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 // other variables
@@ -71,20 +99,22 @@ let overlayTimeout;
 // DOMContentLoaded event: attach UI event listeners
 window.addEventListener("DOMContentLoaded", () => {
   // Google login button
-  document.getElementById("google-login-button").addEventListener("click", () => {
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        userId = result.user.uid;
-        set(ref(db, (`users/${userId}`)), {points:0});
-      })
-      .catch((error) => {
-        console.error("Login error:", error.code, error.message);
-      });
-  });
+  document
+    .getElementById("google-login-button")
+    .addEventListener("click", () => {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          userId = result.user.uid;
+          set(ref(db, `users/${userId}`), { points: 0 });
+        })
+        .catch((error) => {
+          console.error("Login error:", error.code, error.message);
+        });
+    });
 
   // Listen for Enter key in chat input
-  document.getElementById('chat-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+  document.getElementById("chat-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
       e.preventDefault();
       getMessage();
 
@@ -94,65 +124,64 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   // Sidebar navigation: Home link
-  document.getElementById('home-link').addEventListener('click', (e) => {
+  document.getElementById("home-link").addEventListener("click", (e) => {
     e.preventDefault();
 
     // reset chat
     document.getElementById("chat-container").innerHTML = "";
     history.length = 0;
     sessionID = crypto.randomUUID();
-    
+
     setActiveScreen("chat-screen", "home-link");
   });
-  });
+});
 
-  // Sidebar navigation: Chats link
-  document.getElementById('chats-link').addEventListener('click', (e) => {
-    e.preventDefault();
-    setActiveScreen("consultations-screen", "chats-link");
-    // handle dashboard with previous chats
-    handleSessionCards();
-  });
+// Sidebar navigation: Chats link
+document.getElementById("chats-link").addEventListener("click", (e) => {
+  e.preventDefault();
+  setActiveScreen("consultations-screen", "chats-link");
+  // handle dashboard with previous chats
+  handleSessionCards();
+});
 
-  // Sidebar navigation: Records link
-  document.getElementById('records-link').addEventListener('click', (e) => {
-    e.preventDefault();
-    setActiveScreen("records-screen", "records-link");
+// Sidebar navigation: Records link
+document.getElementById("records-link").addEventListener("click", (e) => {
+  e.preventDefault();
+  setActiveScreen("records-screen", "records-link");
 
-    // handle upload area
-    handleUploadScreen()
-  });
+  // handle upload area
+  handleUploadScreen();
+});
 
-  // Sidebar navigation: Appointments link
-  document.getElementById('appointments-link').addEventListener('click', (e) => {
-    e.preventDefault();
-    setActiveScreen("appointments-screen", "appointments-link");
+// Sidebar navigation: Appointments link
+document.getElementById("appointments-link").addEventListener("click", (e) => {
+  e.preventDefault();
+  setActiveScreen("appointments-screen", "appointments-link");
 
-    //control calendar
+  //control calendar
+  initCalendar();
+  prev.addEventListener("click", prevMonth);
+  next.addEventListener("click", nextMonth);
+  todayBtn.addEventListener("click", () => {
+    today = new Date();
+    month = today.getMonth();
+    year = today.getFullYear();
+    dateInput.value = "";
     initCalendar();
-    prev.addEventListener("click", prevMonth);
-    next.addEventListener("click", nextMonth);
-    todayBtn.addEventListener("click", () => {
-      today = new Date();
-      month = today.getMonth();
-      year = today.getFullYear();
-      dateInput.value = "";
-      initCalendar();
-    });
-    dateInput.addEventListener("keyup", (e) => {
-      if (e.key != 'Backspace') {
-        dateInput.value = dateInput.value.replace(/[^0-9/]/g, "") // only allow numbers, remove anything else
-        if (dateInput.value.length === 2) {
-          dateInput.value += "/";
-        }
-        if (dateInput.value.length > 7) {
-          dateInput.value = dateInput.value.slice(0, 7)
-        }
-      }
-    })
-    gotoBtn.addEventListener("click", gotoDate)
   });
-
+  dateInput.addEventListener("keyup", (e) => {
+    if (e.key != "Backspace") {
+      dateInput.value = dateInput.value.replace(/[^0-9/]/g, ""); // only allow numbers, remove anything else
+      if (dateInput.value.length === 2) {
+        dateInput.value += "/";
+      }
+      if (dateInput.value.length > 7) {
+        dateInput.value = dateInput.value.slice(0, 7);
+      }
+    }
+  });
+  gotoBtn.addEventListener("click", gotoDate);
+});
 
 // Firebase auth state listener
 onAuthStateChanged(auth, (user) => {
@@ -179,30 +208,32 @@ onAuthStateChanged(auth, (user) => {
 // Send user message and get response from Gemini API
 export function getMessage(message) {
   if (!message) {
-    const input = document.getElementById('chat-input');
+    const input = document.getElementById("chat-input");
     message = input.value.trim();
     if (!message) return;
-    input.value = '';
+    input.value = "";
   }
 
-  addMessage(message, 'user');
+  addMessage(message, "user");
   history.push({ role: "user", content: message });
 
   askGemini(history)
-    .then(response => {
-      addMessage(response.text, 'bot');
+    .then((response) => {
+      addMessage(response.text, "bot");
       updateFirebase(sessionID, response.text, response.name);
     })
-    .catch(error => {
-      addMessage("Error: " + error.message, 'bot');
+    .catch((error) => {
+      addMessage("Error: " + error.message, "bot");
     });
 }
 
 // Add message bubble to chat UI
 function addMessage(text, sender) {
-  const container = document.getElementById('chat-container');
-  const msg = document.createElement('div');
-  msg.className = `message ${sender === 'user' ? 'user-message' : 'bot-message'}`;
+  const container = document.getElementById("chat-container");
+  const msg = document.createElement("div");
+  msg.className = `message ${
+    sender === "user" ? "user-message" : "bot-message"
+  }`;
   msg.innerHTML = text;
   container.appendChild(msg);
   container.scrollTop = container.scrollHeight;
@@ -214,8 +245,8 @@ function updateFirebase(sessionID, response, name) {
 
   if (!name) {
     const now = new Date();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
     const yy = now.getFullYear();
     name = `${mm}/${dd}/${yy}`;
   }
@@ -223,14 +254,14 @@ function updateFirebase(sessionID, response, name) {
   const sessionRef = ref(db, `users/${userId}/sessions/${sessionID}`);
 
   // Check if session already has a name, and use it if present
-  get(sessionRef).then(snapshot => {
+  get(sessionRef).then((snapshot) => {
     const sessionData = snapshot.val();
     if (sessionData && sessionData.name) {
-      if (sessionData.name[0] != '0') {
+      if (sessionData.name[0] != "0") {
         name = sessionData.name;
       }
     }
-    set(sessionRef, { name, history, createdAt: Date.now()});
+    set(sessionRef, { name, history, createdAt: Date.now() });
     return;
   });
   set(sessionRef, { name, history, createdAt: Date.now() });
@@ -240,9 +271,9 @@ function updateFirebase(sessionID, response, name) {
 function previousSessions(userId) {
   const sessionsRef = ref(db, `users/${userId}/sessions`);
 
-  onValue(query(sessionsRef, orderByChild('createdAt')), (snapshot) => {
-    const dashboard = document.getElementById('consultation-list');
-    dashboard.innerHTML = ''; // Clear old sessions
+  onValue(query(sessionsRef, orderByChild("createdAt")), (snapshot) => {
+    const dashboard = document.getElementById("consultation-list");
+    dashboard.innerHTML = ""; // Clear old sessions
 
     const sessions = [];
     snapshot.forEach((child) => {
@@ -253,17 +284,17 @@ function previousSessions(userId) {
     sessions.reverse();
 
     for (const session of sessions) {
-      const button = document.createElement('div');
-      button.className = 'dashboard-card';
-      button.setAttribute('session', session.id);
+      const button = document.createElement("div");
+      button.className = "dashboard-card";
+      button.setAttribute("session", session.id);
 
-      const name = document.createElement('div');
+      const name = document.createElement("div");
       name.textContent = session.name;
-      name.className = 'session-name';
+      name.className = "session-name";
 
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'delete-button';
-      deleteBtn.innerHTML = '🗑️';
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-button";
+      deleteBtn.innerHTML = "🗑️";
 
       button.appendChild(name);
       button.appendChild(deleteBtn);
@@ -271,7 +302,6 @@ function previousSessions(userId) {
     }
   });
 }
-
 
 // Load and display a selected chat session
 function loadSession(userId, sessionID) {
@@ -281,65 +311,64 @@ function loadSession(userId, sessionID) {
   history.length = 0;
   document.getElementById("chat-container").innerHTML = "";
 
-  get(sessionRef)
-    .then(snapshot => {
-      const session = snapshot.val();
-      if (session) {
-        for (const msgKey in session) {
-          const message = session[msgKey];
-          history.push(message);
-          addMessage(message.content, message.role);
-        }
+  get(sessionRef).then((snapshot) => {
+    const session = snapshot.val();
+    if (session) {
+      for (const msgKey in session) {
+        const message = session[msgKey];
+        history.push(message);
+        addMessage(message.content, message.role);
       }
-    })
+    }
+  });
 }
 
 // handle dashboard with previous chats
 function handleSessionCards() {
-  document.getElementById('consultation-list').addEventListener('click', (e) => {
-  const deleteBtn = e.target.closest('.delete-button');
-  const card = e.target.closest('.dashboard-card');
+  document
+    .getElementById("consultation-list")
+    .addEventListener("click", (e) => {
+      const deleteBtn = e.target.closest(".delete-button");
+      const card = e.target.closest(".dashboard-card");
 
-  // Handle delete
-  if (deleteBtn && card) {
-    const sessionID = card.getAttribute('session');
-    const sessionRef = ref(db, `users/${userId}/sessions/${sessionID}`);
-    remove(sessionRef)
-      .then(() => {
-        card.remove();
-      })
-    return;
-  }
+      // Handle delete
+      if (deleteBtn && card) {
+        const sessionID = card.getAttribute("session");
+        const sessionRef = ref(db, `users/${userId}/sessions/${sessionID}`);
+        remove(sessionRef).then(() => {
+          card.remove();
+        });
+        return;
+      }
 
-  // Handle opening session
-  if (card && !deleteBtn) {
-    // switch to chat screen
-    document.getElementById("consultations-screen").style.display = "none";
-    document.getElementById("chat-screen").style.display = "flex";
+      // Handle opening session
+      if (card && !deleteBtn) {
+        // switch to chat screen
+        document.getElementById("consultations-screen").style.display = "none";
+        document.getElementById("chat-screen").style.display = "flex";
 
-    // update sidebar
-    document.getElementById('home-link').classList.add('active');
-    document.getElementById('chats-link').classList.remove('active');
-    document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
+        // update sidebar
+        document.getElementById("home-link").classList.add("active");
+        document.getElementById("chats-link").classList.remove("active");
+        document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
 
-    // load session
-    sessionID = card.getAttribute('session');
-    loadSession(userId, sessionID);
-  }
-});
+        // load session
+        sessionID = card.getAttribute("session");
+        loadSession(userId, sessionID);
+      }
+    });
 }
-
 
 // check file type
 function typeValidation(type) {
-  return allowedFileTypes.includes(type)
+  return allowedFileTypes.includes(type);
 }
 
 // upload file to Firebase Storage
 function uploadFile(file) {
-  listSection.style.display = 'block';
-  const li = document.createElement('li');
-  li.classList.add('in-prog');
+  listSection.style.display = "block";
+  const li = document.createElement("li");
+  li.classList.add("in-prog");
   li.innerHTML = `
       <div class="col">
           <img src="icons/${iconSelector(file.type)}" alt="">
@@ -352,7 +381,9 @@ function uploadFile(file) {
           <div class="file-progress">
               <span></span>
           </div>
-          <div class="file-size">${(file.size / (1024 * 1024)).toFixed(2)} MB</div>
+          <div class="file-size">${(file.size / (1024 * 1024)).toFixed(
+            2
+          )} MB</div>
       </div>
       <div class="col">
           <svg xmlns="http://www.w3.org/2000/svg" class="cross" height="20" width="20">
@@ -365,41 +396,54 @@ function uploadFile(file) {
   `;
   listContainer.prepend(li);
 
-  const fileRef = storageRef(storage, `uploads/${userId}` + file.name);
+  const fileRef = storageRef(storage, `users/${userId}/uploads/${file.name}`);
   const uploadTask = uploadBytesResumable(fileRef, file);
 
   // Cancel upload
-  li.querySelector('.cross').onclick = () => uploadTask.cancel();
+  li.querySelector(".cross").onclick = () => uploadTask.cancel();
 
   uploadTask.on(
-    'state_changed',
+    "state_changed",
     (snapshot) => {
       const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      li.querySelectorAll('span')[0].innerHTML = Math.round(progress) + '%';
-      li.querySelectorAll('span')[1].style.width = progress + '%';
+      li.querySelectorAll("span")[0].innerHTML = Math.round(progress) + "%";
+      li.querySelectorAll("span")[1].style.width = progress + "%";
     },
     (error) => {
-      if (error.code === 'storage/canceled') {
+      if (error.code === "storage/canceled") {
         li.remove();
       } else {
-        console.error('Upload failed:', error);
-        li.querySelectorAll('span')[0].innerHTML = 'Error';
+        console.error("Upload failed:", error);
+        li.querySelectorAll("span")[0].innerHTML = "Error";
       }
     },
     () => {
-      li.classList.add('complete');
-      li.classList.remove('in-prog');
+      li.classList.add("complete");
+      li.classList.remove("in-prog");
       setTimeout(() => {
-        updatePoints(10);
-      }, 500);
+        updatePoints(10), 500;
+      });
+
+      // upload file metadata to database
+      const fileMetaRef = ref(db, `users/${userId}/files/${file.name}`);
+      set(fileMetaRef, {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        storagePath: filePath,
+        summary: summary,
+      });
     }
   );
 }
 
 // iconSelector remains the same
 function iconSelector(type) {
-  const splitType = (type.split('/')[0] === 'application') ? type.split('/')[1] : type.split('/')[0];
-  return splitType + '.png';
+  const splitType =
+    type.split("/")[0] === "application"
+      ? type.split("/")[1]
+      : type.split("/")[0];
+  return splitType + ".png";
 }
 
 // handle UI and behavior for uploading files
@@ -422,7 +466,7 @@ function handleUploadScreen() {
     e.preventDefault();
     [...e.dataTransfer.items].forEach((item) => {
       if (typeValidation(item.type)) {
-        dropArea.classList.add('drag-over-effect');
+        dropArea.classList.add("drag-over-effect");
       } else {
         alert("Only PDF, JPG, PNG, or Word files are allowed.");
       }
@@ -431,16 +475,16 @@ function handleUploadScreen() {
 
   // when the file leaves the drop area
   dropArea.ondragleave = () => {
-    dropArea.classList.remove('drag-over-effect');
+    dropArea.classList.remove("drag-over-effect");
   };
 
   // when file drops on the drag area
   dropArea.ondrop = (e) => {
     e.preventDefault();
-    dropArea.classList.remove('drag-over-effect');
+    dropArea.classList.remove("drag-over-effect");
     if (e.dataTransfer.items) {
       [...e.dataTransfer.items].forEach((item) => {
-        if (item.kind === 'file') {
+        if (item.kind === "file") {
           const file = item.getAsFile();
           if (typeValidation(file.type)) {
             uploadFile(file);
@@ -453,14 +497,13 @@ function handleUploadScreen() {
       [...e.dataTransfer.files].forEach((file) => {
         if (typeValidation(file.type)) {
           uploadFile(file);
-        }else {
-        alert("Only PDF, JPG, PNG, or Word files are allowed.");
-      }
+        } else {
+          alert("Only PDF, JPG, PNG, or Word files are allowed.");
+        }
       });
     }
   };
 }
-
 
 // populate the calendar with days
 function initCalendar() {
@@ -485,19 +528,23 @@ function initCalendar() {
   }
 
   // current month days
-  for (let i = 1; i <= lastDate; i++){
+  for (let i = 1; i <= lastDate; i++) {
     // add class if day is current day
-    if (i === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()){
+    if (
+      i === new Date().getDate() &&
+      month === new Date().getMonth() &&
+      year === new Date().getFullYear()
+    ) {
       days += `<div class="day today" >${i}</div>`;
     }
     // add remaining days of the month
     else {
-    days += `<div class="day " >${i}</div>`;
+      days += `<div class="day " >${i}</div>`;
     }
   }
 
   //next month days
-  for (let i = 1; i <= nextDays; i++){
+  for (let i = 1; i <= nextDays; i++) {
     days += `<div class="day next-date" >${i}</div>`;
   }
 
@@ -507,20 +554,20 @@ function initCalendar() {
 // previous month
 function prevMonth() {
   month--;
-  if (month < 0){
+  if (month < 0) {
     month = 11;
-    year --;
+    year--;
   }
-  initCalendar()
+  initCalendar();
 }
 
 function nextMonth() {
   month++;
-  if (month > 11){
+  if (month > 11) {
     month = 0;
     year++;
   }
-  initCalendar()
+  initCalendar();
 }
 
 function gotoDate() {
@@ -537,32 +584,32 @@ function gotoDate() {
 }
 
 function setActiveScreen(screenId, linkId) {
-    // Hide all main screens
-    document.getElementById("chat-screen").style.display = "none";
-    document.getElementById("consultations-screen").style.display = "none";
-    document.getElementById("records-screen").style.display = "none";
-    document.getElementById("appointments-screen").style.display = "none";
+  // Hide all main screens
+  document.getElementById("chat-screen").style.display = "none";
+  document.getElementById("consultations-screen").style.display = "none";
+  document.getElementById("records-screen").style.display = "none";
+  document.getElementById("appointments-screen").style.display = "none";
 
-    // Show the selected screen
-    document.getElementById(screenId).style.display = "flex";
+  // Show the selected screen
+  document.getElementById(screenId).style.display = "flex";
 
-    // Clear all active link styles
-    document.querySelectorAll(".sidebar a").forEach(link => {
-      link.classList.remove("active");
-    });
+  // Clear all active link styles
+  document.querySelectorAll(".sidebar a").forEach((link) => {
+    link.classList.remove("active");
+  });
 
-    // Set the clicked link as active
-    document.getElementById(linkId).classList.add("active");
+  // Set the clicked link as active
+  document.getElementById(linkId).classList.add("active");
 
-    // Change the home link name
-    document.getElementById("home-link").textContent = "🧑‍⚕️ Assistant";
+  // Change the home link name
+  document.getElementById("home-link").textContent = "🧑‍⚕️ Assistant";
 }
 
 function updatePoints(newPoints) {
-  const overlay = document.getElementById('points-overlay');
-  const currentBar = document.getElementById('currentBar');
-  const futureBar = document.getElementById('futureBar');
-  const pointsAdditionLabel = document.getElementById('pointsLabel');
+  const overlay = document.getElementById("points-overlay");
+  const currentBar = document.getElementById("currentBar");
+  const futureBar = document.getElementById("futureBar");
+  const pointsAdditionLabel = document.getElementById("pointsLabel");
   const totalPointsLabel = document.getElementById("currentLabel");
 
   get(ref(db, `users/${userId}/points`)).then((snapshot) => {
@@ -579,14 +626,14 @@ function updatePoints(newPoints) {
     futureBar.style.width = `${endPercent}%`;
 
     // Set currentBar to current width instantly
-    currentBar.style.transition = 'none';
+    currentBar.style.transition = "none";
     currentBar.style.width = `${startPercent}%`;
 
     // Force layout so the transition kicks in
     void currentBar.offsetWidth;
 
     // Animate to new width
-    currentBar.style.transition = 'width 1s ease-out';
+    currentBar.style.transition = "width 1s ease-out";
     currentBar.style.width = `${endPercent}%`;
 
     // Update label
@@ -594,17 +641,17 @@ function updatePoints(newPoints) {
     totalPointsLabel.textContent = `${newTotal}`;
 
     // Show overlay
-    overlay.classList.add('active');
+    overlay.classList.add("active");
 
     // Hide overlay after 2.5s
     clearTimeout(overlayTimeout);
     overlayTimeout = setTimeout(() => {
-      overlay.classList.remove('active');
+      overlay.classList.remove("active");
 
       setTimeout(() => {
-        currentBar.style.width = '0%';
-        futureBar.style.width = '0%';
-        pointsAdditionLabel.textContent = '';
+        currentBar.style.width = "0%";
+        futureBar.style.width = "0%";
+        pointsAdditionLabel.textContent = "";
         totalPointsLabel.textContent = "";
       }, 400);
     }, 2500);
