@@ -110,8 +110,6 @@ export async function summarizeFile({
     );
   }
 
-  console.log(contents);
-
   try {
     const result = await model.generateContent({
       contents,
