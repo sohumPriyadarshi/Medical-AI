@@ -76,3 +76,55 @@ export async function askGemini(conversation) {
 
   return { text, name };
 }
+
+// generate file summary
+export async function summarizeFile({
+  text = null,
+  base64 = null,
+  mimeType = null,
+}) {
+  const promptText = "Please summarize the following content in 1-3 words.";
+
+  // Build messages array
+  const contents = [];
+
+  if (text) {
+    contents.push(
+      { role: "user", parts: [{ text: promptText }] },
+      { role: "user", parts: [{ text: text }] }
+    );
+  } else if (base64) {
+    contents.push(
+      { role: "user", parts: [{ text: promptText }] },
+      {
+        role: "user",
+        parts: [
+          {
+            inlineData: {
+              mimeType,
+              data: base64,
+            },
+          },
+        ],
+      }
+    );
+  }
+
+  console.log(contents);
+
+  try {
+    const result = await model.generateContent({
+      contents,
+      generationConfig: {
+        temperature: 0.1,
+      },
+    });
+
+    const data = await result.response.text();
+
+    return data ?? "No summary received.";
+  } catch (error) {
+    console.error("Error summarizing with Gemini:", error);
+    throw error;
+  }
+}

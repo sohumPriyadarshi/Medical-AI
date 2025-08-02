@@ -10,6 +10,7 @@ import {
   query,
   orderByChild,
   update,
+  push,
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import {
   getAuth,
@@ -23,7 +24,7 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
-import { askGemini } from "./gemini.js";
+import { askGemini, summarizeFile } from "./gemini.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -95,6 +96,7 @@ const months = [
 // other variables
 const maxPoints = 300;
 let overlayTimeout;
+let summary = "No Summary";
 
 // DOMContentLoaded event: attach UI event listeners
 window.addEventListener("DOMContentLoaded", () => {
@@ -396,7 +398,8 @@ function uploadFile(file) {
   `;
   listContainer.prepend(li);
 
-  const fileRef = storageRef(storage, `users/${userId}/uploads/${file.name}`);
+  const filePath = `users/${userId}/uploads/${file.name}`;
+  const fileRef = storageRef(storage, filePath);
   const uploadTask = uploadBytesResumable(fileRef, file);
 
   // Cancel upload
@@ -417,16 +420,34 @@ function uploadFile(file) {
         li.querySelectorAll("span")[0].innerHTML = "Error";
       }
     },
-    () => {
+    async () => {
       li.classList.add("complete");
       li.classList.remove("in-prog");
       setTimeout(() => {
-        updatePoints(10), 500;
-      });
+        updatePoints(10);
+      }, 500);
+
+      let summary = "";
+
+      if (
+        file.type == "application/pdf" ||
+        file.type ==
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) {
+        const pdfText = await readFile(file);
+        summary = await summarizeFile({ text: pdfText });
+      } else if (file.type.startsWith("image/")) {
+        const base64Image = await fileToBase64(file);
+        summary = await summarizeFile({
+          base64: base64Image,
+          mimeType: file.type,
+        });
+      }
 
       // upload file metadata to database
-      const fileMetaRef = ref(db, `users/${userId}/files/${file.name}`);
-      set(fileMetaRef, {
+      const filesRef = ref(db, `users/${userId}/files`);
+      const newFilesRef = push(filesRef);
+      set(newFilesRef, {
         name: file.name,
         type: file.type,
         size: file.size,
@@ -435,6 +456,43 @@ function uploadFile(file) {
       });
     }
   );
+}
+
+async function readFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async function () {
+      const pdfData = new Uint8Array(this.result);
+      const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+
+      let extractedText = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+
+        const textContent = await page.getTextContent();
+
+        textContent.items.forEach((item) => {
+          extractedText += item.str + "";
+        });
+      }
+
+      resolve(extractedText.trim());
+      reader.onerror = reject;
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const base64String = event.target.result.split(",")[1]; // Remove data prefix
+      resolve(base64String);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 // iconSelector remains the same
