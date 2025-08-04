@@ -125,6 +125,14 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  document.getElementById("send-button").addEventListener("click", (e) => {
+    e.preventDefault();
+    getMessage();
+
+    // change name
+    document.getElementById("home-link").textContent = "🧑‍⚕️ New Chat";
+  });
+
   // Sidebar navigation: Home link
   document.getElementById("home-link").addEventListener("click", (e) => {
     e.preventDefault();
@@ -219,7 +227,7 @@ export function getMessage(message) {
   addMessage(message, "user");
   history.push({ role: "user", content: message });
 
-  askGemini(history)
+  askGemini(history, userId)
     .then((response) => {
       addMessage(response.text, "bot");
       updateFirebase(sessionID, response.text, response.name);
@@ -373,7 +381,11 @@ function uploadFile(file) {
   li.classList.add("in-prog");
   li.innerHTML = `
       <div class="col">
-          <img src="icons/${iconSelector(file.type)}" alt="">
+        <img
+          src="icons/${iconSelector(file.type)}"
+          alt=""
+          style="width: 40px; height: 50px; object-fit: contain; max-width: 100%; max-height: 100%;"
+        />
       </div>
       <div class="col">
           <div class="file-name">
@@ -495,13 +507,10 @@ async function fileToBase64(file) {
   });
 }
 
-// iconSelector remains the same
 function iconSelector(type) {
-  const splitType =
-    type.split("/")[0] === "application"
-      ? type.split("/")[1]
-      : type.split("/")[0];
-  return splitType + ".png";
+  if (!type || !type.includes("/")) return "unknown.png";
+  const [, subType] = type.split("/");
+  return subType + ".png";
 }
 
 // handle UI and behavior for uploading files
@@ -715,3 +724,13 @@ function updatePoints(newPoints) {
     }, 2500);
   });
 }
+
+/* export async function getFiles(userId) {
+  const filesRef = ref(db, `users/${userId}/files`);
+  const snapshot = await get(filesRef);
+  const files = snapshot.val();
+  if (!files) return [];
+
+  const summaries = Object.values(files).map((file) => file.summary);
+  return summaries;
+} */

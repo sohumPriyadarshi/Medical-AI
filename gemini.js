@@ -5,6 +5,7 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 let text = "";
 let name = null;
+let summaryContext = "";
 
 const instructions = {
   prompt: `You are an unamed board-certified U.S. general practitioner with over 10 years of experience. You are answering user-submitted medical questions through a virtual consultation platform.
@@ -20,8 +21,8 @@ Your goals:
 - Keep paragraphs short and scannable
 - Avoid repeating the same user-provided details in every message unless clinically necessary
 - Don’t ask for clarification more than once unless symptoms change or new issues arise
-- When asking questions, respond in a JSON {"response": "Your Response", "type": "questions", "name": null}
-- When giving your diagnosis, respond in a JSON {"response": "Your Summary", "type": "diagnosis", "name": "1-2 word overview of the users condition"}
+- When asking questions, respond in a JSON {"response": "Your Response", "type": "questions", "name": null, "filesNeeded": if you need any of the available files}
+- When giving your diagnosis, respond in a JSON {"response": "Your Summary", "type": "diagnosis", "name": "1-2 word overview of the users condition", "filesNeeded": false}
 - Keep the response concise and clear, so the user can easily skim through it
 - Try and get a specific condition or diagnosis, not a broad category
 - After the diagnosis, if the user asks a follow-up, do not send back a full diagnosis, just respond as you normally would
@@ -41,7 +42,19 @@ Never downplay serious symptoms. If life-threatening possibilities exist, advise
 If the user is vague, ask up to 3 clarifying questions before proceeding.`,
 };
 
-export async function askGemini(conversation) {
+export async function askGemini(conversation, userId) {
+  /*   const fileSummaries = await getFiles(userId);
+  if (fileSummaries.length > 0) {
+    summaryContext =
+      "Here is the user’s medical history from uploaded files:\n";
+
+    for (let i = 0; i < fileSummaries.length; i++) {
+      summaryContext += "- " + fileSummaries[i] + "\n";
+    }
+  }
+
+  summaryContext += "If you need access to the files ";
+ */
   const systemInstruction = {
     role: "user",
     parts: [{ text: instructions.prompt }],
