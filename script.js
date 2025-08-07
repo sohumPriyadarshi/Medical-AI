@@ -96,7 +96,6 @@ const months = [
 // other variables
 const maxPoints = 300;
 let overlayTimeout;
-let summary = "No Summary";
 
 // DOMContentLoaded event: attach UI event listeners
 window.addEventListener("DOMContentLoaded", () => {

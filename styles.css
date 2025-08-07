@@ -419,6 +419,7 @@ body {
   flex-wrap: wrap;
   height: 100vh;
   padding: 20px;
+  align-content: flex-start;
   gap: 30px;
 }
 
