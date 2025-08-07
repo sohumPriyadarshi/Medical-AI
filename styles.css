@@ -68,10 +68,6 @@ body {
   color: white;
 }
 
-.spaced-item {
-  margin-top: 67vh;
-}
-
 /* Main Content Wrapper */
 .main-content {
   flex: 1;

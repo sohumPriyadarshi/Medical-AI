@@ -289,7 +289,6 @@ function previousSessions(userId) {
       sessions.push({ id: child.key, ...child.val() });
     });
 
-    // Optional: reverse if you want newest sessions first
     sessions.reverse();
 
     for (const session of sessions) {
