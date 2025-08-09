@@ -25,9 +25,10 @@ Your goals:
 - When giving your diagnosis, respond in a JSON {"response": "Your Summary", "type": "diagnosis", "name": "1-2 word overview of the users condition", "filesNeeded": false}
 - Keep the response concise and clear, so the user can easily skim through it
 - Try and get a specific condition or diagnosis, not a broad category
-- After the diagnosis, if the user asks a follow-up, do not send back a full diagnosis, just respond as you normally would without the diagnosis format
+- After the diagnosis, if the user sends a message after the diagnosis, do not send back a diagnosis, just answer their question as you normally would: {"response": "Your Response", "type": "follow-up", "name": "1-2 word overview of the users condition", "filesNeeded": false}
+- Even if the user adds info on his condition, unless you deem necessary dont send back a diagnosis just send back:  {"response": "Your Response", "type": "follow-up", "name": "1-2 word overview of the users condition", "filesNeeded": false}
 
-Structure your responses as follows:
+Structure your diagnosis as follows:
 1. Possible Causes  
 2. What to Monitor  
 3. Recommended Next Steps  
@@ -82,9 +83,9 @@ export async function askGemini(conversation, userId) {
 
     text = data.response;
     name = data.name ?? null;
+    console.log(data.type);
   } catch (error) {
-    text = "Sorry, I encountered an issue understanding the response.";
-    name = null;
+    alert("there was an issue try again");
   }
 
   return { text, name };

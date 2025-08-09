@@ -17,12 +17,12 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
   getStorage,
   ref as storageRef,
   uploadBytesResumable,
-  getDownloadURL,
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 import { askGemini, summarizeFile } from "./gemini.js";
 
@@ -106,13 +106,18 @@ window.addEventListener("DOMContentLoaded", () => {
       signInWithPopup(auth, provider)
         .then((result) => {
           userId = result.user.uid;
-          set(ref(db, `users/${userId}`), { points: 0 });
+          update(ref(db, `users/${userId}`), { points: 0 });
         })
         .catch((error) => {
           console.error("Login error:", error.code, error.message);
         });
     });
 
+  // listen for a logout
+  document.getElementById("logout").addEventListener("click", (e) => {
+    e.preventDefault();
+    signOut(auth);
+  });
   // Listen for Enter key in chat input
   document.getElementById("chat-input").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -135,12 +140,6 @@ window.addEventListener("DOMContentLoaded", () => {
   // Sidebar navigation: Home link
   document.getElementById("home-link").addEventListener("click", (e) => {
     e.preventDefault();
-
-    // reset chat
-    document.getElementById("chat-container").innerHTML = "";
-    history.length = 0;
-    sessionID = crypto.randomUUID();
-
     setActiveScreen("chat-screen", "home-link");
   });
 });
@@ -663,11 +662,16 @@ function setActiveScreen(screenId, linkId) {
     link.classList.remove("active");
   });
 
+  // reset chat
+  document.getElementById("chat-container").innerHTML = "";
+  history.length = 0;
+  sessionID = crypto.randomUUID();
+
   // Set the clicked link as active
   document.getElementById(linkId).classList.add("active");
 
   // Change the home link name
-  document.getElementById("home-link").textContent = "🧑‍⚕️ Assistant";
+  document.getElementById("home-link").textContent = "🧑‍⚕️ Doctor";
 }
 
 function updatePoints(newPoints) {

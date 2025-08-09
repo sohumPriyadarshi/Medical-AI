@@ -38,11 +38,12 @@ body {
   color: var(--primary-clr); /* Blue */
 }
 
-/* Sidebar Navigation */
 .sidebar ul {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar ul li {
@@ -65,6 +66,18 @@ body {
 
 .sidebar ul li a.active {
   background-color: var(--primary-clr); /* Blue */
+  color: white;
+}
+
+.sidebar ul li #logout {
+  margin-top: calc(100vh - 390px);
+  border-radius: 20px;
+  width: 80px;
+  background-color: var(--secondary-clr);
+}
+
+.sidebar ul li #logout:hover {
+  background-color: var(--primary-clr);
   color: white;
 }
 
